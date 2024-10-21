@@ -1,0 +1,63 @@
+{
+    "name": "paymentwall/module-laravel",
+    "description": "A Laravel package for Paymentwall integration",
+    "version": "1.0",
+    "type": "library",
+    "homepage": "https://www.paymentwall.com/?source=gh",
+    "keywords": [
+		"paymentwall",
+		"api",
+		"payments",
+		"carrier billing",
+		"credit cards",
+		"alternative payments",
+		"monetization",
+		"recurring billing",
+		"payment processing",
+        "laravel"
+	],
+    "authors": [
+        {
+            "name": "Paymentwall Team",
+            "email": "devsupport@paymentwall.com",
+            "homepage": "https://www.paymentwall.com"
+        }
+    ],
+    "require": {
+        "php": "^8.0"
+    },
+    "require-dev": {
+		"behat/behat": "2.4.*@stable"
+	},
+    "autoload": {
+        "psr-4": {
+            "PaymentwallLaravel\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PaymentwallLaravel\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+		"test": [
+			"@composer install",
+			"vendor/behat/behat/bin/behat"
+		]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "PaymentwallLaravel\\PaymentwallServiceProvider"
+            ]
+        }
+    },
+    "repositories": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/hugh-outcubator/module-laravel"
+        }
+      ],
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
