@@ -24,6 +24,8 @@ To install the library in your environment, you have several options:
 
 3. Composer: 
    - <code>composer require paymentwall/module-laravel</code>
+4. Publish config
+   - <code>php artisan vendor:publish --tag=paymentwall-config</code>
 
 Then use a code sample below.
 
@@ -33,13 +35,19 @@ Then use a code sample below.
 
 #### Initializing Paymentwall
 Using Paymentwall PHP Library:
+
 ```php
-require_once('/path/to/paymentwall-laravel/autoload.php');
+//Update paymentwall configs in config/paymentwall.php
+
+'public_key' => 'your_public_key',
+'private_key' => 'your_private_key',
+```
+
+```php
+use PaymentwallLaravel\Lib\Config;
 
 Config::getInstance()->set([
-    'api_type' => Config::API_GOODS,
-    'public_key' => 'YOUR_PROJECT_KEY',
-    'private_key' => 'YOUR_SECRET_KEY'
+    'api_type' => Config::API_GOODS
 ]);
 ```
 
@@ -49,6 +57,9 @@ Config::getInstance()->set([
 The widget is a payment page hosted by Paymentwall that embeds the entire payment flow: selecting the payment method, completing the billing details, and providing customer support via the Help section. You can redirect the users to this page or embed it via iframe. Below is an example that renders an iframe with Paymentwall Widget.
 
 ```php
+use PaymentwallLaravel\Lib\Widget;
+use PaymentwallLaravel\Lib\Product;
+
 $widget = new Widget(
 	'user40012',   // id of the end-user who's making the payment
 	'pw',          // widget code, e.g. pw; can be picked inside of your merchant account
@@ -73,10 +84,10 @@ echo $widget->getHtmlCode();
 
 The Pingback is a webhook notifying about a payment being made. Pingbacks are sent via HTTP/HTTPS to your servers. To process pingbacks use the following code:
 ```php
+use PaymentwallLaravel\Lib\Config;
+
 Config::getInstance()->set([
-    'api_type' => Config::API_GOODS,
-    'public_key' => 'YOUR_PROJECT_KEY',
-    'private_key' => 'YOUR_SECRET_KEY'
+    'api_type' => Config::API_GOODS
 ]);
 
 $pingback = new Pingback($_GET, $_SERVER['REMOTE_ADDR']);
@@ -100,15 +111,17 @@ if ($pingback->validate(true)) {
 #### Initializing Paymentwall
 Using Paymentwall PHP Library:
 ```php
+use PaymentwallLaravel\Lib\Config;
+
 Config::getInstance()->set([
-    'api_type' => Config::API_VC,
-    'public_key' => 'YOUR_PROJECT_KEY',
-    'private_key' => 'YOUR_SECRET_KEY'
+    'api_type' => Config::API_VC
 ]);
 ```
 
 #### Widget Call
 ```php
+use PaymentwallLaravel\Lib\Widget;
+
 $widget = new Widget(
 	'user40012', // id of the end-user who's making the payment
 	'p1_1',      // widget code, e.g. p1; can be picked inside of your merchant account
@@ -121,10 +134,10 @@ echo $widget->getHtmlCode();
 #### Pingback Processing
 
 ```php
+use PaymentwallLaravel\Lib\Config;
+
 Config::getInstance()->set([
-    'api_type' => Config::API_VC,
-    'public_key' => 'YOUR_PROJECT_KEY',
-    'private_key' => 'YOUR_SECRET_KEY'
+    'api_type' => Config::API_VC
 ]);
 
 $pingback = new Pingback($_GET, $_SERVER['REMOTE_ADDR']);
@@ -148,16 +161,19 @@ if ($pingback->validate(true)) {
 #### Initializing Paymentwall
 Using Paymentwall PHP Library:
 ```php
+use PaymentwallLaravel\Lib\Config;
+
 Config::getInstance()->set([
-    'api_type' => Config::API_CART,
-    'public_key' => 'YOUR_PROJECT_KEY',
-    'private_key' => 'YOUR_SECRET_KEY'
+    'api_type' => Config::API_CART
 ]);
 ```
 
 #### Widget Call
 Stored products call example (when products are stored in Paymentwall):  
 ```php
+use PaymentwallLaravel\Lib\Widget;
+use PaymentwallLaravel\Lib\Product;
+
 $widget = new Widget(
 	'user40012', // id of the end-user who's making the payment
 	'p1_1',      // widget code, e.g. p1; can be picked inside of your merchant account,
@@ -173,6 +189,9 @@ echo $widget->getHtmlCode();
 Non-stored products call example (when products are not stored in Paymentwall):
 
 ```php
+use PaymentwallLaravel\Lib\Widget;
+use PaymentwallLaravel\Lib\Product;
+
 $widget = new Widget(
 	'user40012', // id of the end-user who's making the payment
 	'p1_1',      // widget code, e.g. p1; can be picked inside of your merchant account,
@@ -188,11 +207,11 @@ echo $widget->getHtmlCode();
 #### Pingback Processing
 
 ```php
+use PaymentwallLaravel\Lib\Config;
+use PaymentwallLaravel\Lib\Pingback;
 
 Config::getInstance()->set([
-    'api_type' => Config::API_CART,
-    'public_key' => 'YOUR_PROJECT_KEY',
-    'private_key' => 'YOUR_SECRET_KEY'
+    'api_type' => Config::API_CART
 ]);
 
 $pingback = new Pingback($_GET, $_SERVER['REMOTE_ADDR']);
@@ -215,60 +234,99 @@ if ($pingback->validate(true)) {
 
 #### Initializing Paymentwall
 ```php
+use PaymentwallLaravel\Lib\Config;
+
 Config::getInstance()->set([
 	'public_key' => 'YOUR_PUBLIC_KEY',
 	'private_key' => 'YOUR_PRIVATE_KEY'
 ]);
 ```
 
-#### Create a one-time token
-```php
-$tokenModel = new OneTimeToken();
-$token =  $tokenModel->create([
-	'public_key' => Config::getInstance()->getPublicKey(),
-	'card[number]' => '4242424242424242',
-	'card[exp_month]' => '11',
-	'card[exp_year]' => '19',
-	'card[cvv]' => '123'
-]);
-// send token to charge via $token->getToken();
-```
+#### Tokenize payment details with default form
 
-#### Charge
-```php
-$charge = new Charge();
-$charge->create([
-	// if generated via backend
-	//'token' => $token->getToken(),
-	// if generated via brick.js
-	'token' => $_POST['brick_token'],
-	'email' => $_POST['email'],
-	'currency' => 'USD',
-	'amount' => 10,
-	'fingerprint' => $_POST['brick_fingerprint'],
-	'description' => 'Order #123'
-]);
+- STEP 1: [FRONTEND](https://docs.paymentwall.com/integration/direct/brick/create-form)
+  
+    Paymentwall provides you a default form for Brick to collect payment details. Include Brick.js in your page in order to implement it.
+  - Brick form:
 
-$response = $charge->getPublicData();
+    ```<script src="https://api.paymentwall.com/brick/1.6/build/brick.1.6.0.min.js"></script>```
+  - Create a div tag with id, keep the consistency with the value of container in separate script tag.
+  
+    ```<div id="payment-form-container"></div>```
+  - This tutorial uses a test project key which is also available to test in the section below. Remember to replace the value of param public_key with your own Brick project key.
+  
+  ```
+    <script src="https://api.paymentwall.com/brick/1.6/build/brick.1.6.0.min.js"></script>
+    <div id="payment-form-container"> </div>
+      <script>
+        var brick = new Brick({
+          public_key: 'YOUR_PUBLIC_KEY', // please update it to Brick live key before launch your project
+          amount: 9.99,
+          currency: 'USD',
+          container: 'payment-form-container',
+          action: '/YOUR-CHARGE-ACTION',
+          form: {
+            merchant: 'Paymentwall',
+            product: 'Gold Membership',
+            pay_button: 'Pay',
+            show_zip: true, // show zip code 
+            show_cardholder: true, // show card holder name,
+            lang: 'en'
+          }
+        });
+    
+        brick.showPaymentForm(function(data) {
+          //handle success
+        }, function(errors) {
+          // handle errors
+        });
+      </script>
+  ```
 
-if ($charge->isSuccessful()) {
-	if ($charge->isCaptured()) {
-		// deliver s product
-	} elseif ($charge->isUnderReview()) {
-		// decide on risk charge
-	}
-} else {
-	$errors = json_decode($response, true);
-	echo $errors['error']['code'];
-	echo $errors['error']['message'];
-}
-
-echo $response; // need for JS communication
-```
+- STEP 2: Charge
+    ```php
+    use PaymentwallLaravel\Lib\Charge;
+    
+    $parameters = $request->all();
+    $cardInfo = array(
+        'email' => $parameters['email'],
+        'amount' => 9.99,
+        'currency' => 'USD',
+        'token' => $parameters['brick_token'],
+        'fingerprint' => $parameters['brick_fingerprint'],
+        'description' => 'Order #123'
+    );
+    
+    if (isset($parameters['brick_charge_id']) AND isset($parameters['brick_secure_token'])) {
+        $cardInfo['charge_id'] = $parameters['brick_charge_id'];
+        $cardInfo['secure_token'] = $parameters['brick_secure_token'];
+    }
+    
+    $charge = new Charge();
+    $charge->create($cardInfo);
+    $responseData = json_decode($charge->getRawResponseData(),true);
+    $response = $charge->getPublicData();
+    
+    if ($charge->isSuccessful() AND empty($responseData['secure'])) {
+        if ($charge->isCaptured()) {
+        // deliver a product
+        } elseif ($charge->isUnderReview()) {
+        // decide on risk charge
+        }
+    } elseif (!empty($responseData['secure'])) {
+        $response = json_encode(array('secure' => $responseData['secure']));
+    } else {
+        $errors = json_decode($response, true);
+    }
+    
+    echo $response;
+    ```
 
 #### Charge - refund
 
 ```php
+use PaymentwallLaravel\Lib\Charge;
+
 $charge = new Charge('CHARGE_ID');
 $charge->refund();
 
@@ -278,16 +336,16 @@ echo $charge->isRefunded();
 #### Subscription
 
 ```php
+use PaymentwallLaravel\Lib\Subscription;
+
+$parameters = $request->all();
 $subscription = new Subscription();
 $subscription->create([
-	// if generated via backend
-	//'token' => $token->getToken(),
-	// if generated via brick.js
-	'token' => $_POST['brick_token'],
-	'email' => $_POST['email'],
+	'token' => $parameters['brick_token'],
+	'email' => $parameters['email'],
 	'currency' => 'USD',
 	'amount' => 10,
-	'fingerprint' => $_POST['brick_fingerprint'],
+	'fingerprint' => $parameters['brick_fingerprint'],
 	'plan' => 'product_123',
 	'description' => 'Order #123',
 	'period' => 'week',
@@ -305,6 +363,8 @@ echo $subscription->getId();
 #### Subscription - cancel
 
 ```php
+use PaymentwallLaravel\Lib\Subscription;
+
 $subscription = new Subscription('SUBSCRIPTION_ID');
 $subscription->cancel();
 
@@ -314,6 +374,8 @@ echo $subscription->isActive();
 ### Signature calculation - Widget
 
 ```php
+use PaymentwallLaravel\Lib\Signature\SignatureWidget;
+
 $widgetSignatureModel = new SignatureWidget();
 echo $widgetSignatureModel->calculate(
 	[], // widget params
@@ -324,6 +386,8 @@ echo $widgetSignatureModel->calculate(
 ### Signature calculation - Pingback
 
 ```php
+use PaymentwallLaravel\Lib\Signature\SignaturePingback;
+
 $pingbackSignatureModel = new SignaturePingback();
 echo $pingbackSignatureModel->calculate(
 	[], // pingback params
@@ -335,6 +399,8 @@ echo $pingbackSignatureModel->calculate(
 
 #### Initializing Paymentwall
 ```php
+use PaymentwallLaravel\Lib\Config;
+
 Config::getInstance()->set([
 	'public_key' => 'YOUR_PROJECT_KEY',
 	'private_key' => 'YOUR_SECRET_KEY'
@@ -343,19 +409,22 @@ Config::getInstance()->set([
 
 #### Get a token
 ```php
+use PaymentwallLaravel\Lib\Mobiamo;
+
 $model = new Mobiamo();
 $tokenParams = [
 	'uid' => 'test'
 ]
 $response = $model->getToken($tokenParams);
 if (!empty($response['success'])) {
-	//store this token and expire time (default is 86400s) to use in all next requests
-	//example of success response: 
+	// Store this token and expire time (default is 86400s) to use in all next requests
+	/* Example of success response: 
 		[
 			'success' => 1, 
 			'token' => 'randomString', 
 			'expire_time' => 86400
 		]
+	*/
 	var_dump($response['token']);
 	var_dump($response['expire_time']);
 } else {
@@ -366,6 +435,8 @@ if (!empty($response['success'])) {
 
 #### Init payment
 ```php
+use PaymentwallLaravel\Lib\Mobiamo;
+
 $model = new Mobiamo();
 $initParams = [
 	'uid' => 'test', 
@@ -418,6 +489,8 @@ if (!empty($response['success'])) {
 
 #### Process payment (Use this request if previous response has flow = code/msisdn)
 ```php
+use PaymentwallLaravel\Lib\Mobiamo;
+
 $model = new Mobiamo();
 $processParams = [
 	'uid' => 'test', 
@@ -447,6 +520,8 @@ if (!empty($response['success'])) {
 
 #### Get payment info
 ```php
+use PaymentwallLaravel\Lib\Mobiamo;
+
 $model = new Mobiamo();
 $getPaymentParams = [
 	'uid' => 'test', 

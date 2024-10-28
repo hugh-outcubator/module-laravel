@@ -2,7 +2,6 @@
 
 namespace PaymentwallLaravel\Lib;
 
-
 use PaymentwallLaravel\Lib\HttpAction;
 use PaymentwallLaravel\Lib\OneTimeToken;
 
@@ -47,23 +46,23 @@ abstract class ApiObject extends Instance
 	public function getApiUrl()
 	{
 		if ($this->getEndpointName() === self::API_OBJECT_ONE_TIME_TOKEN && !$this->getConfig()->isTest()) {
-			return OneTimeToken::GATEWAY_TOKENIZATION_URL;
+			return config('paymentwall.one_time_token.gateway_tokenization_url');
 		} else {
 			return $this->getApiBaseUrl() . $this->getSubPath() . '/' . $this->getEndpointName();
 		}
 	}
 
 	/**
-	 * Returns raw data about the response that can be presented to the end-user: 
+	 * Returns raw data about the response that can be presented to the end-user:
 	 * 	success => 0 or 1
-	 *	error => 
+	 *	error =>
 	 *		message 	- human-readable error message
 	 *		code 		- error code, see https://www.paymentwall.com/us/documentation/Brick/2968#error
-	 * 	secure => 
+	 * 	secure =>
 	 *		formHTML 	- needed to complete 3D Secure step, HTML of the form to be submitted to the user to redirect him to the bank page
 	 *
-	 * @return array 
-	 *				
+	 * @return array
+	 *
 	 */
 	public function _getPublicData()
 	{
@@ -107,7 +106,7 @@ abstract class ApiObject extends Instance
 	/**
 	 * @return string json encoded result of ApiObject::getPublicData()
 	 */
-	public function getPublicData() 
+	public function getPublicData()
 	{
 		return json_encode($this->_getPublicData());
 	}

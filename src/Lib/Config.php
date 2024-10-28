@@ -6,8 +6,6 @@ class Config
 {
 	const VERSION = '2.0.0';
 
-	const API_BASE_URL = 'https://api.paymentwall.com/api';
-
 	const API_VC	= 1;
 	const API_GOODS	= 2;
 	const API_CART	= 3;
@@ -15,9 +13,16 @@ class Config
 	protected $apiType = self::API_GOODS;
 	protected $publicKey;
 	protected $privateKey;
-	protected $apiBaseUrl = self::API_BASE_URL;
+	protected $apiBaseUrl;
 
 	private static $instance;
+
+    public function __construct()
+    {
+        $this->apiBaseUrl = config('paymentwall.base_url');
+        $this->publicKey = config('paymentwall.public_key');
+        $this->privateKey = config('paymentwall.private_key');
+    }
 
 	public function getApiBaseUrl()
 	{
@@ -95,10 +100,6 @@ class Config
 			self::$instance = new $className;
 		}
 		return self::$instance;
-	}
-
-	protected function __construct()
-	{
 	}
 
 	private function __clone()

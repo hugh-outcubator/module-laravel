@@ -4,7 +4,7 @@ namespace PaymentwallLaravel\Lib;
 
 use PaymentwallLaravel\Lib\Config;
 use PaymentwallLaravel\Lib\Product;
-use PaymentwallLaravel\Lib\Response\Widget;
+use PaymentwallLaravel\Lib\Signature\SignatureWidget;
 use PaymentwallLaravel\Lib\Signature\SignatureAbstract;
 
 class Widget extends Instance
@@ -112,7 +112,7 @@ class Widget extends Instance
 
         $params = array_merge($params, $this->extraParams);
 
-        $widgetSignatureModel = new Widget();
+        $widgetSignatureModel = new SignatureWidget();
         $params['sign'] = $widgetSignatureModel->calculate(
             $params,
             $signatureVersion
@@ -123,11 +123,7 @@ class Widget extends Instance
 
     public function getHtmlCode($attributes = [])
     {
-        $defaultAttributes = [
-            'frameborder' => '0',
-            'width' => '750',
-            'height' => '800'
-        ];
+        $defaultAttributes = config('paymentwall.widget.default_attributes');
 
         $attributes = array_merge($defaultAttributes, $attributes);
 

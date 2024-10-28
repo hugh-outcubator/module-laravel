@@ -2,6 +2,7 @@
 
 namespace PaymentwallLaravel\Lib;
 
+use GuzzleHttp\Client;
 use PaymentwallLaravel\Lib\ApiObject;
 
 class HttpAction extends Instance
@@ -50,7 +51,7 @@ class HttpAction extends Instance
 
 	public function run()
 	{
-		$result = null;
+		$result = [];
 
 		if ($this->getApiObject() instanceof ApiObject) {
 			$result = $this->apiObjectPostRequest($this->getApiObject());
@@ -74,63 +75,43 @@ class HttpAction extends Instance
 		return $this->request('GET', $url, $this->getApiParams(), $this->getApiHeaders());
 	}
 
-	protected function request($httpVerb = '', $url = '', $params = [], $customHeaders = [])
-	{
-		$curl = curl_init();
+    /**
+     * @param $method
+     * @param $url
+     * @param $params
+     * @param $headers
+     * @param $rawResponse
+     * @return mixed|string|null
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    protected function request($method, $url, $params = [], $headers = [])
+    {
+        $client = new Client();
+        $headers = array_merge($headers, [
+            $this->getLibraryDefaultRequestHeader()
+        ]);
 
-		$headers = [
-			$this->getLibraryDefaultRequestHeader()
-		];
+        $formParams = [
+            'form_params' => $params,
+            'headers' => $headers,
+            'verify' => false,
+            'timeout' => 60
+        ];
 
-		if (!empty($customHeaders)) {
-			$headers = array_merge($headers, $customHeaders);
-		}
+        $response = [];
+        try {
+            $response = $client->request($method, $url, $formParams);
+            $response = $response->getBody()->getContents();
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
 
-		if (!empty($params)) {
-			curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($params));
-		}
-
-		// CURL_SSLVERSION_TLSv1_2 is defined in libcurl version 7.34 or later
-		// but unless PHP has been compiled with the correct libcurl headers it
-		// won't be defined in your PHP instance.  PHP > 5.5.19 or > 5.6.3
-		if (! defined('CURL_SSLVERSION_TLSv1_2')) {
-			define('CURL_SSLVERSION_TLSv1_2', 6);
-		}
-
-		curl_setopt($curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
-		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $httpVerb);
-		curl_setopt($curl, CURLOPT_URL, $url);
-		curl_setopt($curl, CURLOPT_TIMEOUT, 60);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-		curl_setopt($curl, CURLOPT_HEADER, true);
-
-		$response = curl_exec($curl);
-
-		$headerSize = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
-		$header = substr($response, 0, $headerSize);
-		$body = substr($response, $headerSize);
-
-		$this->responseLogInformation = [
-			'header' => $header,
-			'body' => $body,
-			'status' => curl_getinfo($curl, CURLINFO_HTTP_CODE)
-		];
-		
-		curl_close($curl);
-
-		return $this->prepareResponse($body);
-	}
+        return !empty($response) ? $response : null;
+    }
 
 	protected function getLibraryDefaultRequestHeader()
 	{
 		return 'User-Agent: Paymentwall PHP Library v. ' . $this->getConfig()->getVersion();
-	}
-
-	protected function prepareResponse($string = '')
-	{
-		return preg_replace('/\x{FEFF}/u', '', $string);
 	}
 
 	public function getResponseLogInformation() {

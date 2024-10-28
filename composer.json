@@ -5,17 +5,17 @@
     "type": "library",
     "homepage": "https://www.paymentwall.com/?source=gh",
     "keywords": [
-		"paymentwall",
-		"api",
-		"payments",
-		"carrier billing",
-		"credit cards",
-		"alternative payments",
-		"monetization",
-		"recurring billing",
-		"payment processing",
+        "paymentwall",
+        "api",
+        "payments",
+        "carrier billing",
+        "credit cards",
+        "alternative payments",
+        "monetization",
+        "recurring billing",
+        "payment processing",
         "laravel"
-	],
+    ],
     "authors": [
         {
             "name": "Paymentwall Team",
@@ -24,11 +24,11 @@
         }
     ],
     "require": {
-        "php": "^8.0"
+        "php": "^7.4"
     },
     "require-dev": {
-		"behat/behat": "2.4.*@stable"
-	},
+       "behat/behat": "2.4.*@stable"
+    },
     "autoload": {
         "psr-4": {
             "PaymentwallLaravel\\": "src"
@@ -36,14 +36,14 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "PaymentwallLaravel\\Tests\\": "tests"
+            //
         }
     },
     "scripts": {
-		"test": [
-			"@composer install",
-			"vendor/behat/behat/bin/behat"
-		]
+        "test": [
+            "@composer install",
+            "vendor/behat/behat/bin/behat"
+        ]
     },
     "extra": {
         "laravel": {
