@@ -4,8 +4,6 @@ namespace PaymentwallLaravel\Lib;
 
 class OneTimeToken extends ApiObject
 {
-	const GATEWAY_TOKENIZATION_URL = 'https://pwgateway.com/api/token';
-
 	public function getToken()
 	{
 		return $this->token;

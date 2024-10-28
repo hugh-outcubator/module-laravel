@@ -105,22 +105,14 @@ class Pingback extends Instance
 
 	public function isIpAddressValid()
 	{
-		$ipsWhitelist = [
-			'174.36.92.186',
-			'174.36.96.66',
-			'174.36.92.187',
-			'174.36.92.192',
-			'174.37.14.28'
-		];
+		$ipsWhitelist = config('paymentwall.ips_whitelist');
 
-		$rangesWhitelist = [
-			'216.127.71.0/24'
-		];
+		$rangesWhitelist = config('paymentwall.range_whitelist');
 
 		if (in_array($this->ipAddress, $ipsWhitelist)) {
 			return true;
 		}
-		
+
 		foreach ($rangesWhitelist as $range) {
 			if ($this->isCidrMatched($this->ipAddress, $range)) {
 				return true;
