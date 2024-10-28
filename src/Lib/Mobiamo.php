@@ -4,6 +4,7 @@ namespace PaymentwallLaravel\Lib;
 
 use PaymentwallLaravel\Lib\OneTimeToken;
 use PaymentwallLaravel\Lib\HttpAction;
+use PaymentwallLaravel\Lib\Signature\SignatureAbstract;
 
 class Mobiamo extends ApiObject
 {
@@ -13,20 +14,22 @@ class Mobiamo extends ApiObject
 	{
 		return self::API_OBJECT_MOBIAMO;
 	}
-	
-	public function getToken($params){
-	    $defaultParams = [
-	    	'key' => $this->getConfig()->getPublicKey(),
-		    'ts' => time(),
-		    'sign_version' => SignatureAbstract::VERSION_TWO
-	    ];
-	    $params = array_merge($defaultParams, $params);
-	    $params['sign'] = $this->calculateSignature($params);
-	    $this->doApiAction('token', 'post', $params);
-	    return $this->getProperties();
+
+	public function getToken($params)
+	{
+		$defaultParams = [
+			'key' => $this->getConfig()->getPublicKey(),
+			'ts' => time(),
+			'sign_version' => SignatureAbstract::VERSION_TWO
+		];
+		$params = array_merge($defaultParams, $params);
+		$params['sign'] = $this->calculateSignature($params);
+		$respose = $this->doApiAction('token', 'post', $params);
+		return $this->getProperties();
 	}
 
-	public function initPayment($token, $params){
+	public function initPayment($token, $params)
+	{
 		$this->token = $token;
 		$params['key'] = $this->getConfig()->getPublicKey();
 		$this->doApiAction('init-payment', 'post', $params);
@@ -40,7 +43,8 @@ class Mobiamo extends ApiObject
 		return $this->getProperties();
 	}
 
-	public function getPaymentInfo($token, $params){
+	public function getPaymentInfo($token, $params)
+	{
 		$this->token = $token;
 		$params['key'] = $this->getConfig()->getPublicKey();
 		$this->doApiAction('get-payment', 'post', $params);
@@ -88,7 +92,7 @@ class Mobiamo extends ApiObject
 	public function getApiUrl()
 	{
 		if ($this->getEndpointName() === self::API_OBJECT_ONE_TIME_TOKEN && !$this->getConfig()->isTest()) {
-			return OneTimeToken::GATEWAY_TOKENIZATION_URL;
+			return config('paymentwall.one_time_token.gateway_tokenization_url');
 		} else {
 			return $this->getApiBaseUrl() . '/' .  $this->getEndpointName();
 		}
